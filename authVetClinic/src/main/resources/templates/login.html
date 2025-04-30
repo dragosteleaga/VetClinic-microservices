@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Login - Vet Clinic</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-container {
+            max-width: 400px;
+            width: 100%;
+            padding: 20px;
+        }
+        .login-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .login-header h2 {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        .form-control {
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+        }
+        .form-control:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+        }
+        .btn-primary {
+            background-color: #4a90e2;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #357abd;
+            transform: translateY(-2px);
+        }
+        .alert {
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h2>Welcome Back</h2>
+                <p class="text-muted">Please login to your account</p>
+            </div>
+            
+            <form id="loginForm" class="needs-validation">
+                <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="email" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="password" class="form-control" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            const payload = {
+                email: email,
+                password: password
+            };
+
+            try {
+                const response = await fetch("/api/users/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    const token = await response.text();
+                    sessionStorage.setItem("jwtToken2", token);
+                    document.cookie = "jwtToken2=" + token + "; path=/"
+                    urlToGetRole="http://localhost:8081/api/users/getRoleByEmail/"+email
+                    const responseForRole=await fetch(urlToGetRole, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                    });
+                    const role = JSON.parse(await responseForRole.text()); // removes the extra quotes
+                    console.log(role)
+                    if (role==="OWNER"){
+                    window.location.href = "http://localhost:8081/owner/dashboard";
+                    }else  if (role==="VETERINARIAN"){
+                        window.location.href = "http://localhost:8081/vet/dashboard";
+                    }
+                } else {
+                    const errorData = await response.json();
+                    alert(errorData.message || "Login failed");
+                }
+            } catch (error) {
+                console.error("Login error:", error);
+                alert("Something went wrong!");
+            }
+        });
+    </script>
+</body>
+</html>

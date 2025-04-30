@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Receipt - Appointment</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container mt-5">
+  <h2>Add Receipt for Appointment</h2>
+  <p><strong>Owner:</strong> <span th:text="${appointmentResponse.owner.firstName}"></span></p>
+  <p><strong>Animal:</strong> <span th:text="${appointmentResponse.animal.name}"></span></p>
+  <p><strong>Date:</strong> <span th:text="${appointmentResponse.date}"></span></p>
+  <p><strong>Details:</strong> <span th:text="${appointmentResponse.details}"></span></p>
+  <p><strong>Price:</strong> <span th:text="${appointmentResponse.price}"></span></p>
+
+
+  <!-- Form for adding receipt -->
+  <form id="receiptForm">
+    <div class="form-group">
+      <label for="receiptDetails">Receipt Details</label>
+      <textarea id="receiptDetails" name="receiptDetails" class="form-control" rows="4" required></textarea>
+    </div>
+    <div class="form-group">
+      <label for="receiptAmount">Amount</label>
+      <input type="number" id="receiptAmount" name="receiptAmount" class="form-control" required />
+    </div>
+    <button type="button" class="btn btn-primary mt-3" onclick="submitReceipt()">Save Receipt</button>
+  </form>
+
+  <br>
+  <a href="/vet/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+
+<script>
+  // Set the values dynamically using Thymeleaf attributes
+  document.getElementById("ownerName").innerText = /*[[${appointmentResponse.getOwner().firstName}]]*/ 'John'; // Example value
+  document.getElementById("animalName").innerText = /*[[${appointmentResponse.getAnimal().getName()}]]*/ 'Fluffy'; // Example value
+  document.getElementById("appointmentDate").innerText = /*[[${appointmentResponse.getDate()}]]*/ '2025-04-24'; // Example value
+  document.getElementById("appointmentDetails").innerText = /*[[${appointmentResponse.details}]]*/ 'Checkup'; // Example value
+  document.getElementById("appointmentPrice").innerText = /*[[${appointmentResponse.price}]]*/ '50'; // Example value
+
+  // Function to handle form submission
+  async function submitReceipt() {
+    // Get form values
+    const receiptDetails = document.getElementById("receiptDetails").value;
+    const receiptAmount = document.getElementById("receiptAmount").value;
+    const appointmentId = /*[[${appointmentResponse.id}]]*/ '1'; // Example value, dynamically set by Thymeleaf
+
+    // Create the payload for the POST request
+    const payload = {
+      description: receiptDetails,
+      drugIds: [2],
+      appointmentId: appointmentId
+    };
+
+    try {
+      const response = await fetch(`/api/recipes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        // If receipt is saved successfully, redirect or show success message
+        alert("Receipt saved successfully!");
+        window.location.href = "/vet/dashboard"; // Redirect to dashboard
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || "Failed to save receipt");
+      }
+    } catch (error) {
+      console.error("Error saving receipt:", error);
+      alert("An error occurred while saving the receipt.");
+    }
+  }
+</script>
+
+</body>
+</html>

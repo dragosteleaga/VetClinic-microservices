@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  vetclinic:
+    image: dragosteleaga/vetclinic  # Use the image you've built
+    container_name: vetclinic
+    ports:
+      - "8081:8081"  # Expose the Spring Boot app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/vetclinic
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: true
+    depends_on:
+      - mysql
+    networks:
+      - vetclinic-network
+
+  auth-vetclinic:
+    image: dragosteleaga/authvetclinic  # Use the image you've built
+    container_name: auth-vetclinic
+    ports:
+      - "8082:8082"  # Expose the Spring Boot app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/vetclinic
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: true
+    depends_on:
+      - mysql
+    networks:
+      - vetclinic-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: vetclinic-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: vetclinic
+    ports:
+      - "3307:3306"
+    networks:
+      - vetclinic-network
+
+networks:
+  vetclinic-network:
+    driver: bridge
